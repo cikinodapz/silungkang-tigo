@@ -11,6 +11,7 @@ var kelolaUserRouter = require('./routes/userRoutes'); // Import user management
 var kelolaKKRouter = require('./routes/pendudukRoutes/datakkRoutes'); // Import family card management routes
 var kelolaKepalaKeluargaRouter = require('./routes/pendudukRoutes/dataKepalaKeluagaRoutes'); // Import head of family management routes
 var apbdesRouter = require('./routes/APBDesRoutes/APBDesRoutes'); // Import APBDes routes
+var beritaRouter = require('./routes/beritaRoutes/beritaRoutes'); // Import berita routes
 
 var app = express();
 
@@ -31,6 +32,7 @@ app.use('/kelola-user', kelolaUserRouter); // Use user management routes
 app.use('/kelola-kk', kelolaKKRouter); // Use family card management routes
 app.use('/kelola-kepala-keluarga', kelolaKepalaKeluargaRouter); // Use head of family management routes
 app.use('/apbdes', apbdesRouter); // Use APBDes routes
+app.use('/berita', beritaRouter); // Use berita routes
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

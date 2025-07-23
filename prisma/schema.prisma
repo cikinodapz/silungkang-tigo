@@ -103,3 +103,23 @@ model APBDes {
   updatedAt     DateTime @updatedAt
 }
 
+model KategoriBerita {
+  id            String   @id @default(uuid()) @db.Uuid
+  kategori      String   @unique
+  jumlah_berita Int      @default(0)
+  berita        Berita[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Berita {
+  id            String   @id @default(uuid()) @db.Uuid
+  sampul        String?  @db.Text // Path to cover image
+  judul         String
+  berita        String   @db.Text
+  kategori      KategoriBerita @relation(fields: [kategoriId], references: [id])
+  kategoriId    String   @db.Uuid
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
