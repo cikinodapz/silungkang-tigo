@@ -92,3 +92,14 @@ model AnggotaKeluarga {
   updatedAt         DateTime @updatedAt
 }
 
+model APBDes {
+  id            String   @id @default(uuid()) @db.Uuid
+  pendanaan     String
+  jumlah_dana   Float
+  jenis_apbd    String
+  tahun         Int
+  keterangan    String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+

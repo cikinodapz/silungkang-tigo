@@ -141,12 +141,6 @@ const updateKK = async (req, res) => {
 
 const deleteKK = async (req, res) => {
   try {
-    // Hapus relasi dulu (set kkId menjadi null untuk semua anggota)
-    await prisma.user.updateMany({
-      where: { kkId: req.params.id },
-      data: { kkId: null }
-    });
-
     await prisma.kK.delete({
       where: { id: req.params.id }
     });
@@ -157,9 +151,6 @@ const deleteKK = async (req, res) => {
     res.status(400).json({ message: "Terjadi kesalahan" });
   }
 };
-
-// HAPUS FITUR TAMBAH ANGGOTA WKWKWK 🔥
-// BIAR ADMIN YANG URUS MANUAL
 
 module.exports = {
   createKK,
