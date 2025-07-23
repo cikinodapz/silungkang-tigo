@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KK {
+  id          String   @id @default(uuid()) @db.Uuid
+  no_kk       String   @unique
+  provinsi    String
+  kabupaten   String
+  kecamatan   String
+  kelurahan   String
+  dusun       String
+  rw          String
+  rt          String
+  kode_pos    String
+  kepalaKeluarga KepalaKeluarga? @relation(fields: [kepalaKeluargaId], references: [id])
+  kepalaKeluargaId String? @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  AnggotaKeluarga AnggotaKeluarga[]
+}
+
+model KepalaKeluarga {
+  id                String   @id @default(uuid()) @db.Uuid
+  nik               String   @unique
+  nama              String
+  no_akta_kelahiran String?
+  jenis_kelamin     String
+  tempat_lahir      String
+  tanggal_lahir     DateTime
+  golongan_darah    String?
+  agama             String
+  status_perkawinan String
+  pendidikan_akhir  String
+  pekerjaan         String
+  nama_ayah         String
+  nama_ibu          String
+  scan_ktp          String?  @db.Text  // Simpan path file
+  scan_kk           String?  @db.Text
+  scan_akta_lahir   String?  @db.Text
+  scan_buku_nikah   String?  @db.Text
+  kk                KK[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model AnggotaKeluarga {
+  id                String   @id @default(uuid()) @db.Uuid
+  nik               String   @unique
+  nama              String
+  no_akta_kelahiran String?
+  jenis_kelamin     String
+  tempat_lahir      String
+  tanggal_lahir     DateTime
+  golongan_darah    String?
+  agama             String
+  status_hubungan   String // New field for family relationship status
+  status_perkawinan String
+  pendidikan_akhir  String
+  pekerjaan         String
+  nama_ayah         String
+  nama_ibu          String
+  scan_ktp          String?  @db.Text
+  scan_kk           String?  @db.Text
+  scan_akta_lahir   String?  @db.Text
+  scan_buku_nikah   String?  @db.Text
+  kk                KK?      @relation(fields: [kkId], references: [id])
+  kkId              String?  @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+

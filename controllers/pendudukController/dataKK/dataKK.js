@@ -1,0 +1,170 @@
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+const createKK = async (req, res) => {
+  try {
+    const { no_kk, provinsi, kabupaten, kecamatan, kelurahan, dusun, rw, rt, kode_pos } = req.body;
+
+    const existingKK = await prisma.kK.findUnique({
+      where: { no_kk }
+    });
+    
+    if (existingKK) {
+      return res.status(400).json({ message: "Nomor KK sudah terdaftar" });
+    }
+
+    const kk = await prisma.kK.create({
+      data: {
+        no_kk,
+        provinsi,
+        kabupaten,
+        kecamatan,
+        kelurahan,
+        dusun,
+        rw,
+        rt,
+        kode_pos
+      }
+    });
+
+    res.status(201).json({ message: "KK berhasil dibuat", kk });
+  } catch (error) {
+    console.error("Create KK error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+const getAllKK = async (req, res) => {
+  try {
+    const kkList = await prisma.kK.findMany({
+      include: {
+        kepalaKeluarga: {
+          select: {
+            id: true,
+            nik: true,
+            nama: true,
+            no_akta_kelahiran: true,
+            jenis_kelamin: true,
+            tempat_lahir: true,
+            tanggal_lahir: true,
+            golongan_darah: true,
+            agama: true,
+            status_perkawinan: true,
+            pendidikan_akhir: true,
+            pekerjaan: true,
+            nama_ayah: true,
+            nama_ibu: true,
+            scan_ktp: true,
+            scan_kk: true,
+            scan_akta_lahir: true,
+            scan_buku_nikah: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+          AnggotaKeluarga: {
+          select: {
+            id: true,
+            nik: true,
+            nama: true,
+            no_akta_kelahiran: true,
+            jenis_kelamin: true,
+            tempat_lahir: true,
+            tanggal_lahir: true,
+            golongan_darah: true,
+            agama: true,
+            status_hubungan: true,
+            status_perkawinan: true,
+            pendidikan_akhir: true,
+            pekerjaan: true,
+            nama_ayah: true,
+            nama_ibu: true,
+            scan_ktp: true,
+            scan_kk: true,
+            scan_akta_lahir: true,
+            scan_buku_nikah: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+    res.json(kkList);
+  } catch (error) {
+    console.error("Get all KK error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+const getKKById = async (req, res) => {
+  try {
+    const kk = await prisma.kK.findUnique({
+      where: { id: req.params.id },
+    });
+    
+    if (!kk) return res.status(404).json({ message: "KK tidak ditemukan" });
+    res.json(kk);
+  } catch (error) {
+    console.error("Get KK by ID error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+const updateKK = async (req, res) => {
+  try {
+    const { no_kk, provinsi, kabupaten, kecamatan, kelurahan, dusun, rw, rt, kode_pos } = req.body;
+
+    const kk = await prisma.kK.update({
+      where: { id: req.params.id },
+      data: {
+        no_kk,
+        provinsi,
+        kabupaten,
+        kecamatan,
+        kelurahan,
+        dusun,
+        rw,
+        rt,
+        kode_pos
+      }
+    });
+    
+    res.json({ message: "KK berhasil diperbarui", kk });
+  } catch (error) {
+    console.error("Update KK error:", error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: "KK tidak ditemukan" });
+    }
+    res.status(400).json({ message: "Terjadi kesalahan" });
+  }
+};
+
+const deleteKK = async (req, res) => {
+  try {
+    // Hapus relasi dulu (set kkId menjadi null untuk semua anggota)
+    await prisma.user.updateMany({
+      where: { kkId: req.params.id },
+      data: { kkId: null }
+    });
+
+    await prisma.kK.delete({
+      where: { id: req.params.id }
+    });
+    
+    res.json({ message: "KK berhasil dihapus" });
+  } catch (error) {
+    console.error("Delete KK error:", error);
+    res.status(400).json({ message: "Terjadi kesalahan" });
+  }
+};
+
+// HAPUS FITUR TAMBAH ANGGOTA WKWKWK 🔥
+// BIAR ADMIN YANG URUS MANUAL
+
+module.exports = {
+  createKK,
+  getAllKK,
+  getKKById,
+  updateKK,
+  deleteKK
+};
