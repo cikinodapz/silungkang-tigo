@@ -123,3 +123,22 @@ model Berita {
   updatedAt     DateTime @updatedAt
 }
 
+model KategoriProdukHukum {
+  id                String   @id @default(uuid()) @db.Uuid
+  kategori          String   @unique
+  jumlah_produk_hukum Int    @default(0)
+  produkHukum       ProdukHukum[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ProdukHukum {
+  id                String   @id @default(uuid()) @db.Uuid
+  nama_produk_hukum String
+  file_pendukung    String?  @db.Text // Path to PDF file
+  kategori          KategoriProdukHukum @relation(fields: [kategoriId], references: [id])
+  kategoriId        String   @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+

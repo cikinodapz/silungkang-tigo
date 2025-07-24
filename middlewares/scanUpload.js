@@ -18,6 +18,8 @@ const storage = multer.diskStorage({
       uploadPath = "public/uploads/nikah";
     } else if (file.fieldname === "sampul") {
       uploadPath = "public/uploads/berita";
+    } else if (file.fieldname === "file_pendukung") {
+      uploadPath = "public/uploads/produkhukum";
     }
 
     cb(null, uploadPath);
@@ -30,11 +32,15 @@ const storage = multer.diskStorage({
 
 // Filter file (hanya image dan PDF)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+  const allowedTypes = file.fieldname === 'sampul' 
+    ? ['image/jpeg', 'image/png']
+    : file.fieldname === 'file_pendukung'
+    ? ['application/pdf']
+    : ['image/jpeg', 'image/png', 'application/pdf'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Hanya file JPEG, PNG, atau PDF yang diizinkan"), false);
+    cb(new Error('Hanya file JPEG atau PNG untuk sampul, dan PDF untuk file pendukung'), false);
   }
 };
 
@@ -54,8 +60,11 @@ const uploadKepalaKeluargaFiles = upload.fields([
 ]);
 
 // Middleware for Berita uploads
-const uploadBeritaFiles = upload.fields([
-  { name: 'sampul', maxCount: 1 },
+const uploadBeritaFiles = upload.fields([{ name: "sampul", maxCount: 1 }]);
+
+// Middleware for ProdukHukum uploads
+const uploadProdukHukumFiles = upload.fields([
+  { name: 'file_pendukung', maxCount: 1 },
 ]);
 
-module.exports = { uploadKepalaKeluargaFiles, uploadBeritaFiles };
+module.exports = { uploadKepalaKeluargaFiles, uploadBeritaFiles, uploadProdukHukumFiles };

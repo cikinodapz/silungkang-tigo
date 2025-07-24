@@ -12,6 +12,7 @@ var kelolaKKRouter = require('./routes/pendudukRoutes/datakkRoutes'); // Import 
 var kelolaKepalaKeluargaRouter = require('./routes/pendudukRoutes/dataKepalaKeluagaRoutes'); // Import head of family management routes
 var apbdesRouter = require('./routes/APBDesRoutes/APBDesRoutes'); // Import APBDes routes
 var beritaRouter = require('./routes/beritaRoutes/beritaRoutes'); // Import berita routes
+var productHukumRouter = require('./routes/produkHukumRoutes/produkHukumRoutes'); // Import produk hukum routes
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use('/kelola-kk', kelolaKKRouter); // Use family card management routes
 app.use('/kelola-kepala-keluarga', kelolaKepalaKeluargaRouter); // Use head of family management routes
 app.use('/apbdes', apbdesRouter); // Use APBDes routes
 app.use('/berita', beritaRouter); // Use berita routes
+app.use('/produk-hukum', productHukumRouter); // Use produk hukum routes
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
