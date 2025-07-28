@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { uploadLapakDesaFiles } = require("../../middlewares/scanUpload");
+const path = require("path");
+const fs = require("fs");
 
 const createUMKM = async (req, res) => {
   try {
@@ -165,6 +167,27 @@ const deleteUMKM = async (req, res) => {
   }
 };
 
+const getFotoUMKM = async (req, res) => {
+  try {
+    const { type, filename } = req.params;
+
+    // Path absolut ke folder 'public/uploads'
+    const rootDir = path.resolve(__dirname, '../..'); // <- dari controllers/pendudukController
+    const filePath = path.join(rootDir, 'public', 'uploads', type, filename);
+
+    console.log("File Path:", filePath);
+
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath); // path absolut, ini wajib
+    } else {
+      res.status(404).json({ message: "File tidak ditemukan" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
 const createProduk = async (req, res) => {
   try {
     const { nama_produk, deskripsi_produk, link_produk, umkmId } = req.body;
@@ -323,16 +346,39 @@ const deleteProduk = async (req, res) => {
   }
 };
 
+const getFotoProduk = async (req, res) => {
+  try {
+    const { type, filename } = req.params;
+
+    // Path absolut ke folder 'public/uploads'
+    const rootDir = path.resolve(__dirname, '../..'); // <- dari controllers/pendudukController
+    const filePath = path.join(rootDir, 'public', 'uploads', type, filename);
+
+    console.log("File Path:", filePath);
+
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath); // path absolut, ini wajib
+    } else {
+      res.status(404).json({ message: "File tidak ditemukan" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
 module.exports = {
   createUMKM,
   getAllUMKM,
   getUMKM,
   updateUMKM,
   deleteUMKM,
+  getFotoUMKM,
   createProduk,
   getAllProduk,
   getProduk,
   updateProduk,
   deleteProduk,
+  getFotoProduk,
   uploadLapakDesaFiles,
 };
