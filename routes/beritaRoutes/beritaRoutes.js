@@ -1,7 +1,6 @@
 const express = require('express');
 const { createKategoriBerita, updateKategoriBerita, deleteKategoriBerita, createBerita,getBerita,updateBerita,deleteBerita,uploadBeritaFiles, getAllKategoriBerita, getAllBerita, getSampul } = require('../../controllers/beritaControllers/berita');
 const authMiddleware = require('../../middlewares/authMiddleware');
-
 const router = express.Router();
 
 // Kategori Berita Routes

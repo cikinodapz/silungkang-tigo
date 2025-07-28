@@ -142,3 +142,25 @@ model ProdukHukum {
   updatedAt         DateTime @updatedAt
 }
 
+model UMKM {
+  id            String   @id @default(uuid()) @db.Uuid
+  nama_umkm     String   @unique
+  deskripsi_umkm String?  @db.Text
+  foto_umkm     String?  @db.Text // Path to UMKM image
+  kontak_wa     String
+  produk        Produk[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Produk {
+  id              String   @id @default(uuid()) @db.Uuid
+  nama_produk     String
+  deskripsi_produk String? @db.Text
+  foto_produk     String? @db.Text // Path to product image
+  link_produk     String?
+  umkm            UMKM     @relation(fields: [umkmId], references: [id])
+  umkmId          String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

@@ -20,8 +20,11 @@ const storage = multer.diskStorage({
       uploadPath = "public/uploads/berita";
     } else if (file.fieldname === "file_pendukung") {
       uploadPath = "public/uploads/produkhukum";
+    } else if (file.fieldname === "foto_umkm") {
+      uploadPath = "public/uploads/umkm";
+    } else if (file.fieldname === "foto_produk") {
+      uploadPath = "public/uploads/produk";
     }
-
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
@@ -32,15 +35,23 @@ const storage = multer.diskStorage({
 
 // Filter file (hanya image dan PDF)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = file.fieldname === 'sampul' 
-    ? ['image/jpeg', 'image/png']
-    : file.fieldname === 'file_pendukung'
-    ? ['application/pdf']
-    : ['image/jpeg', 'image/png', 'application/pdf'];
+  const allowedTypes =
+    file.fieldname === "sampul" ||
+    file.fieldname === "foto_umkm" ||
+    file.fieldname === "foto_produk"
+      ? ["image/jpeg", "image/png"]
+      : file.fieldname === "file_pendukung"
+      ? ["application/pdf"]
+      : ["image/jpeg", "image/png", "application/pdf"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Hanya file JPEG atau PNG untuk sampul, dan PDF untuk file pendukung'), false);
+    cb(
+      new Error(
+        "Hanya file JPEG atau PNG untuk gambar, dan PDF untuk file pendukung"
+      ),
+      false
+    );
   }
 };
 
@@ -64,7 +75,17 @@ const uploadBeritaFiles = upload.fields([{ name: "sampul", maxCount: 1 }]);
 
 // Middleware for ProdukHukum uploads
 const uploadProdukHukumFiles = upload.fields([
-  { name: 'file_pendukung', maxCount: 1 },
+  { name: "file_pendukung", maxCount: 1 },
 ]);
 
-module.exports = { uploadKepalaKeluargaFiles, uploadBeritaFiles, uploadProdukHukumFiles };
+const uploadLapakDesaFiles = upload.fields([
+  { name: 'foto_umkm', maxCount: 1 },
+  { name: 'foto_produk', maxCount: 1 },
+]);
+
+module.exports = {
+  uploadKepalaKeluargaFiles,
+  uploadBeritaFiles,
+  uploadProdukHukumFiles,
+  uploadLapakDesaFiles,
+};
