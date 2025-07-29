@@ -24,6 +24,8 @@ const storage = multer.diskStorage({
       uploadPath = "public/uploads/umkm";
     } else if (file.fieldname === "foto_produk") {
       uploadPath = "public/uploads/produk";
+    } else if (file.fieldname === "foto") {
+      uploadPath = "public/uploads/potensidesa";
     }
     cb(null, uploadPath);
   },
@@ -38,7 +40,8 @@ const fileFilter = (req, file, cb) => {
   const allowedTypes =
     file.fieldname === "sampul" ||
     file.fieldname === "foto_umkm" ||
-    file.fieldname === "foto_produk"
+    file.fieldname === "foto_produk" ||
+    file.fieldname === "foto"
       ? ["image/jpeg", "image/png"]
       : file.fieldname === "file_pendukung"
       ? ["application/pdf"]
@@ -79,8 +82,13 @@ const uploadProdukHukumFiles = upload.fields([
 ]);
 
 const uploadLapakDesaFiles = upload.fields([
-  { name: 'foto_umkm', maxCount: 1 },
-  { name: 'foto_produk', maxCount: 1 },
+  { name: "foto_umkm", maxCount: 1 },
+  { name: "foto_produk", maxCount: 1 },
+]);
+
+// Middleware for PotensiDesa uploads
+const uploadPotensiDesaFiles = upload.fields([
+  { name: "foto", maxCount: 1 },
 ]);
 
 module.exports = {
@@ -88,4 +96,5 @@ module.exports = {
   uploadBeritaFiles,
   uploadProdukHukumFiles,
   uploadLapakDesaFiles,
+  uploadPotensiDesaFiles,
 };

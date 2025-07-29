@@ -202,3 +202,13 @@ model PindahKeluar {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model PotensiDesa {
+  id              String   @id @default(uuid()) @db.Uuid
+  nama            String
+  deskripsi       String?  @db.Text
+  kategori        String
+  foto            String?  @db.Text // Path to photo
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
