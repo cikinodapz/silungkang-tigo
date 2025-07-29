@@ -14,6 +14,7 @@ var apbdesRouter = require('./routes/APBDesRoutes/APBDesRoutes'); // Import APBD
 var beritaRouter = require('./routes/beritaRoutes/beritaRoutes'); // Import berita routes
 var productHukumRouter = require('./routes/produkHukumRoutes/produkHukumRoutes'); // Import produk hukum routes
 var lapakDesaRouter = require('./routes/lapakDesaRoutes/lapakDesaRoutes'); // Import lapak desa routes
+var mutasiRouter = require('./routes/mutasiRoutes/mutasiRoutes'); // Import mutasi routes
 
 var app = express();
 
@@ -37,6 +38,7 @@ app.use('/apbdes', apbdesRouter); // Use APBDes routes
 app.use('/berita', beritaRouter); // Use berita routes
 app.use('/produk-hukum', productHukumRouter); // Use produk hukum routes
 app.use('/lapak-desa', lapakDesaRouter); // Use lapak desa routes
+app.use('/mutasi', mutasiRouter); // Use mutasi routes
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

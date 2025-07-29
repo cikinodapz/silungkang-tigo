@@ -38,8 +38,10 @@ model KK {
   kepalaKeluargaId String? @db.Uuid
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   AnggotaKeluarga AnggotaKeluarga[]
+  LahirMasuk LahirMasuk[]
+  Meninggal Meninggal[]
+  PindahKeluar PindahKeluar[]
 }
 
 model KepalaKeluarga {
@@ -161,6 +163,42 @@ model Produk {
   link_produk     String?
   umkm            UMKM     @relation(fields: [umkmId], references: [id])
   umkmId          String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model LahirMasuk {
+  id              String   @id @default(uuid()) @db.Uuid
+  nama            String
+  nik             String   @unique
+  tanggal_lahir_masuk DateTime
+  alamat_sebelumnya String?  @db.Text
+  kk              KK?      @relation(fields: [kkId], references: [id])
+  kkId            String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Meninggal {
+  id              String   @id @default(uuid()) @db.Uuid
+  nama            String
+  nik             String   @unique
+  tanggal_meninggal DateTime
+  alamat_meninggal String   @db.Text
+  kk              KK?      @relation(fields: [kkId], references: [id])
+  kkId            String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PindahKeluar {
+  id              String   @id @default(uuid()) @db.Uuid
+  nama            String
+  nik             String   @unique
+  tanggal_pindah  DateTime
+  alamat_tujuan   String   @db.Text
+  kk              KK?      @relation(fields: [kkId], references: [id])
+  kkId            String?  @db.Uuid
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
