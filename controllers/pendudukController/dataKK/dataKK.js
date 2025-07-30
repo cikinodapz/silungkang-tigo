@@ -34,6 +34,44 @@ const createKK = async (req, res) => {
   }
 };
 
+const getKKWithoutKepalaKeluarga = async (req, res) => {
+  try {
+    // Cari semua KK yang kepalaKeluargaId-nya null
+    const kkList = await prisma.kK.findMany({
+      where: {
+        kepalaKeluargaId: null
+      },
+      select: {
+        id: true,
+        no_kk: true,
+        provinsi: true,
+        kabupaten: true,
+        kecamatan: true,
+        kelurahan: true,
+        dusun: true,
+        rw: true,
+        rt: true,
+        kode_pos: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      data: kkList 
+    });
+  } catch (error) {
+    console.error("Error fetching KK without kepala keluarga:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Terjadi kesalahan server" 
+    });
+  }
+};
+
 const getAllKK = async (req, res) => {
   try {
     const kkList = await prisma.kK.findMany({
@@ -154,6 +192,7 @@ const deleteKK = async (req, res) => {
 
 module.exports = {
   createKK,
+  getKKWithoutKepalaKeluarga,
   getAllKK,
   getKKById,
   updateKK,

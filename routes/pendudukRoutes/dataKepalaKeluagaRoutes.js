@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { createKepalaKeluarga,getFile, updateKepalaKeluarga, deleteKepalaKeluarga, getDetailKepalaKeluarga, createAnggotaKeluarga,getAnggotaKeluarga, updateAnggotaKeluarga,deleteAnggotaKeluarga } = require('../../controllers/pendudukController/dataKepalaKeluarga/dataKepalaKeluarga');
+const { createKepalaKeluarga,getFile, updateKepalaKeluarga, deleteKepalaKeluarga,getAllKepalaKeluarga, getDetailKepalaKeluarga, createAnggotaKeluarga,getAnggotaKeluarga, updateAnggotaKeluarga,deleteAnggotaKeluarga } = require('../../controllers/pendudukController/dataKepalaKeluarga/dataKepalaKeluarga');
 const { uploadKepalaKeluargaFiles } = require('../../middlewares/scanUpload');
 
 //Kepala Keluarga Routes
 router.post('/createKepalaKeluarga', uploadKepalaKeluargaFiles, createKepalaKeluarga); // Endpoint to create kepala keluarga
+router.get('/getAllKepalaKeluarga', authMiddleware, getAllKepalaKeluarga); // Endpoint to get all kepala keluarga
 router.get('/getDetailKepalaKeluarga/:id', authMiddleware, getDetailKepalaKeluarga); // Endpoint to get kepala keluarga details
 router.put('/editKepalaKeluarga/:id', uploadKepalaKeluargaFiles, updateKepalaKeluarga); // Endpoint to update kepala keluarga
 router.delete('/deleteKepalaKeluarga/:id', authMiddleware, deleteKepalaKeluarga); // Endpoint to delete kepala keluarga

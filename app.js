@@ -1,5 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
+const cors = require('cors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -18,6 +19,12 @@ var mutasiRouter = require('./routes/mutasiRoutes/mutasiRoutes'); // Import muta
 var potensiDesaRouter = require('./routes/potensiDesaRoutes/potensiDesaRoutes'); // Import potensi desa routes
 
 var app = express();
+
+// Tambahkan CORS
+app.use(cors({
+  origin: 'http://localhost:8000', // Sesuaikan dengan URL FE kamu
+  credentials: true, // Aktifkan kalau FE pakai credentials: 'include'
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -57,5 +64,9 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.use(express.json());
+
+
 
 module.exports = app;

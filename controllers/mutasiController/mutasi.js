@@ -1,5 +1,54 @@
 const { PrismaClient } = require("@prisma/client");
+const { get } = require("../../routes");
 const prisma = new PrismaClient();
+
+const getResidents = async (req, res) => {
+  try {
+    // Fetch data from KepalaKeluarga
+    const kepalaKeluarga = await prisma.kepalaKeluarga.findMany({
+      select: {
+        nama: true,
+        nik: true,
+      },
+    });
+
+    // Fetch data from AnggotaKeluarga
+    const anggotaKeluarga = await prisma.anggotaKeluarga.findMany({
+      select: {
+        nama: true,
+        nik: true,
+      },
+    });
+
+    // Combine the results
+    const residents = [
+      ...kepalaKeluarga.map((kepala) => ({
+        nama: kepala.nama,
+        nik: kepala.nik,
+      })),
+      ...anggotaKeluarga.map((anggota) => ({
+        nama: anggota.nama,
+        nik: anggota.nik,
+      })),
+    ];
+
+    // Remove duplicates based on NIK (just in case)
+    const uniqueResidents = Array.from(
+      new Map(residents.map((item) => [item.nik, item])).values()
+    );
+
+    // Sort by name for better UX
+    uniqueResidents.sort((a, b) => a.nama.localeCompare(b.nama));
+
+    res.status(200).json({
+      message: "Data penduduk berhasil diambil",
+      residents: uniqueResidents,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
 
 const createLahirMasuk = async (req, res) => {
   try {
@@ -488,6 +537,7 @@ const deletePindahKeluar = async (req, res) => {
 };
 
 module.exports = {
+  getResidents,
   createLahirMasuk,
   getAllLahirMasuk,
   getLahirMasuk,

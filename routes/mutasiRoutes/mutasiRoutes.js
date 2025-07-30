@@ -16,11 +16,13 @@ const {
   getAllLahirMasuk,
   getAllMeninggal,
   getAllPindahKeluar,
+  getResidents,
 } = require("../../controllers/mutasiController/mutasi");
 
 const router = express.Router();
 
 // Lahir Masuk Routes
+router.get("/getResidents", authMiddleware, getResidents); // Endpoint to get residents
 router.post("/createLahirMasuk", authMiddleware, createLahirMasuk); // Endpoint to create birth/move in record
 router.get("/getAllLahirMasuk", authMiddleware, getAllLahirMasuk); // Endpoint to get all birth/move in records
 router.get("/getLahirMasuk/:id", authMiddleware, getLahirMasuk); // Endpoint to get birth/move in record by ID

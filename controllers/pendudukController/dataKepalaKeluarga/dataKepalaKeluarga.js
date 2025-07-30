@@ -22,9 +22,17 @@ const createKepalaKeluarga = async (req, res) => {
       kkId,
     } = req.body;
 
+    // Validasi field wajib
+    if (!nik) {
+      return res.status(400).json({ message: "NIK harus diisi" });
+    }
+    if (!kkId) {
+      return res.status(400).json({ message: "ID KK harus diisi" });
+    }
+
     // Validasi NIK unik
     const existingNik = await prisma.kepalaKeluarga.findUnique({
-      where: { nik },
+      where: { nik: nik.toString() }, // Pastikan nik berupa string
     });
     if (existingNik) {
       return res.status(400).json({ message: "NIK sudah terdaftar" });
@@ -35,29 +43,36 @@ const createKepalaKeluarga = async (req, res) => {
       where: { id: kkId },
       select: { kepalaKeluargaId: true },
     });
-    if (existingKK?.kepalaKeluargaId) {
-      return res.status(400).json({ message: "KK sudah memiliki kepala keluarga" });
+
+    if (!existingKK) {
+      return res.status(404).json({ message: "KK tidak ditemukan" });
+    }
+
+    if (existingKK.kepalaKeluargaId) {
+      return res
+        .status(400)
+        .json({ message: "KK sudah memiliki kepala keluarga" });
     }
 
     // Dapatkan path file yang diupload
     const files = req.files;
-    const scan_ktp = files.scan_ktp
+    const scan_ktp = files?.scan_ktp?.[0]
       ? `/uploads/ktp/${files.scan_ktp[0].filename}`
       : null;
-    const scan_kk = files.scan_kk
+    const scan_kk = files?.scan_kk?.[0]
       ? `/uploads/kk/${files.scan_kk[0].filename}`
       : null;
-    const scan_akta_lahir = files.scan_akta_lahir
+    const scan_akta_lahir = files?.scan_akta_lahir?.[0]
       ? `/uploads/akta/${files.scan_akta_lahir[0].filename}`
       : null;
-    const scan_buku_nikah = files.scan_buku_nikah
+    const scan_buku_nikah = files?.scan_buku_nikah?.[0]
       ? `/uploads/nikah/${files.scan_buku_nikah[0].filename}`
       : null;
 
     // Buat data kepala keluarga
     const kepalaKeluarga = await prisma.kepalaKeluarga.create({
       data: {
-        nik,
+        nik: nik.toString(), // Pastikan nik berupa string
         nama,
         no_akta_kelahiran,
         jenis_kelamin,
@@ -81,12 +96,48 @@ const createKepalaKeluarga = async (req, res) => {
     // Update KK untuk merujuk ke kepala keluarga ini
     await prisma.kK.update({
       where: { id: kkId },
-      data: { kepalaKeluarga: { connect: { id: kepalaKeluarga.id } } },
+      data: { kepalaKeluargaId: kepalaKeluarga.id },
     });
 
     res.status(201).json({
       message: "Kepala keluarga berhasil dibuat",
-      kepalaKeluarga,
+      data: kepalaKeluarga,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+
+    // Hapus file yang sudah diupload jika terjadi error
+    if (req.files) {
+      Object.values(req.files).forEach((fileArray) => {
+        if (fileArray && fileArray[0]) {
+          fs.unlink(fileArray[0].path, (err) => {
+            if (err) console.error("Gagal menghapus file:", err);
+          });
+        }
+      });
+    }
+
+    res.status(500).json({
+      message: "Terjadi kesalahan server",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+const getAllKepalaKeluarga = async (req, res) => {
+  try {
+    const kepalaKeluargaList = await prisma.kepalaKeluarga.findMany({
+      include: {
+        kk: true, // jika ingin menampilkan informasi KK yang terhubung
+      },
+      orderBy: {
+        createdAt: "desc", // optional: urut berdasarkan waktu input
+      },
+    });
+
+    res.status(200).json({
+      message: "Data semua kepala keluarga berhasil diambil",
+      data: kepalaKeluargaList,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -108,7 +159,9 @@ const getDetailKepalaKeluarga = async (req, res) => {
 
     // Jika kepala keluarga tidak ditemukan
     if (!kepalaKeluarga) {
-      return res.status(404).json({ message: "Kepala keluarga tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Kepala keluarga tidak ditemukan" });
     }
 
     res.status(200).json({
@@ -130,7 +183,9 @@ const updateKepalaKeluarga = async (req, res) => {
     // Dapatkan data lama untuk hapus file jika diupdate
     const oldData = await prisma.kepalaKeluarga.findUnique({ where: { id } });
     if (!oldData) {
-      return res.status(404).json({ message: "Data kepala keluarga tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data kepala keluarga tidak ditemukan" });
     }
 
     // Handle file upload
@@ -147,11 +202,13 @@ const updateKepalaKeluarga = async (req, res) => {
         filePaths.scan_kk = `/uploads/kk/${files.scan_kk[0].filename}`;
       }
       if (files.scan_akta_lahir) {
-        if (oldData.scan_akta_lahir) filesToDelete.push(oldData.scan_akta_lahir);
+        if (oldData.scan_akta_lahir)
+          filesToDelete.push(oldData.scan_akta_lahir);
         filePaths.scan_akta_lahir = `/uploads/akta/${files.scan_akta_lahir[0].filename}`;
       }
       if (files.scan_buku_nikah) {
-        if (oldData.scan_buku_nikah) filesToDelete.push(oldData.scan_buku_nikah);
+        if (oldData.scan_buku_nikah)
+          filesToDelete.push(oldData.scan_buku_nikah);
         filePaths.scan_buku_nikah = `/uploads/nikah/${files.scan_buku_nikah[0].filename}`;
       }
     }
@@ -165,7 +222,9 @@ const updateKepalaKeluarga = async (req, res) => {
         no_akta_kelahiran: body.no_akta_kelahiran,
         jenis_kelamin: body.jenis_kelamin,
         tempat_lahir: body.tempat_lahir,
-        tanggal_lahir: body.tanggal_lahir ? new Date(body.tanggal_lahir) : undefined,
+        tanggal_lahir: body.tanggal_lahir
+          ? new Date(body.tanggal_lahir)
+          : undefined,
         golongan_darah: body.golongan_darah,
         agama: body.agama,
         status_perkawinan: body.status_perkawinan,
@@ -173,13 +232,13 @@ const updateKepalaKeluarga = async (req, res) => {
         pekerjaan: body.pekerjaan,
         nama_ayah: body.nama_ayah,
         nama_ibu: body.nama_ibu,
-        ...filePaths
-      }
+        ...filePaths,
+      },
     });
 
     // Hapus file lama jika ada
-    filesToDelete.forEach(filePath => {
-      const fullPath = path.join(__dirname, '../../public', filePath);
+    filesToDelete.forEach((filePath) => {
+      const fullPath = path.join(__dirname, "../../public", filePath);
       if (fs.existsSync(fullPath)) {
         fs.unlinkSync(fullPath);
       }
@@ -187,9 +246,8 @@ const updateKepalaKeluarga = async (req, res) => {
 
     res.json({
       message: "Data kepala keluarga berhasil diperbarui",
-      data: updatedData
+      data: updatedData,
     });
-
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Terjadi kesalahan server" });
@@ -342,7 +400,9 @@ const getAnggotaKeluarga = async (req, res) => {
     });
 
     if (!anggotaKeluarga) {
-      return res.status(404).json({ message: "Anggota keluarga tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Anggota keluarga tidak ditemukan" });
     }
 
     res.status(200).json({
@@ -382,7 +442,9 @@ const updateAnggotaKeluarga = async (req, res) => {
       where: { id },
     });
     if (!existingAnggota) {
-      return res.status(404).json({ message: "Anggota keluarga tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Anggota keluarga tidak ditemukan" });
     }
 
     // Validate unique NIK (if changed)
@@ -426,14 +488,23 @@ const updateAnggotaKeluarga = async (req, res) => {
       data: {
         nik: nik || existingAnggota.nik,
         nama: nama || existingAnggota.nama,
-        no_akta_kelahiran: no_akta_kelahiran !== undefined ? no_akta_kelahiran : existingAnggota.no_akta_kelahiran,
+        no_akta_kelahiran:
+          no_akta_kelahiran !== undefined
+            ? no_akta_kelahiran
+            : existingAnggota.no_akta_kelahiran,
         jenis_kelamin: jenis_kelamin || existingAnggota.jenis_kelamin,
         tempat_lahir: tempat_lahir || existingAnggota.tempat_lahir,
-        tanggal_lahir: tanggal_lahir ? new Date(tanggal_lahir) : existingAnggota.tanggal_lahir,
-        golongan_darah: golongan_darah !== undefined ? golongan_darah : existingAnggota.golongan_darah,
+        tanggal_lahir: tanggal_lahir
+          ? new Date(tanggal_lahir)
+          : existingAnggota.tanggal_lahir,
+        golongan_darah:
+          golongan_darah !== undefined
+            ? golongan_darah
+            : existingAnggota.golongan_darah,
         agama: agama || existingAnggota.agama,
         status_hubungan: status_hubungan || existingAnggota.status_hubungan,
-        status_perkawinan: status_perkawinan || existingAnggota.status_perkawinan,
+        status_perkawinan:
+          status_perkawinan || existingAnggota.status_perkawinan,
         pendidikan_akhir: pendidikan_akhir || existingAnggota.pendidikan_akhir,
         pekerjaan: pekerjaan || existingAnggota.pekerjaan,
         nama_ayah: nama_ayah || existingAnggota.nama_ayah,
@@ -466,7 +537,9 @@ const deleteAnggotaKeluarga = async (req, res) => {
       where: { id },
     });
     if (!anggotaKeluarga) {
-      return res.status(404).json({ message: "Anggota keluarga tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Anggota keluarga tidak ditemukan" });
     }
 
     // Delete Anggota Keluarga
@@ -487,8 +560,8 @@ const getFile = async (req, res) => {
     const { type, filename } = req.params;
 
     // Path absolut ke folder 'public/uploads'
-    const rootDir = path.resolve(__dirname, '../../../'); // <- dari controllers/pendudukController
-    const filePath = path.join(rootDir, 'public', 'uploads', type, filename);
+    const rootDir = path.resolve(__dirname, "../../../"); // <- dari controllers/pendudukController
+    const filePath = path.join(rootDir, "public", "uploads", type, filename);
 
     console.log("File Path:", filePath);
 
@@ -503,9 +576,9 @@ const getFile = async (req, res) => {
   }
 };
 
-
 module.exports = {
   createKepalaKeluarga,
+  getAllKepalaKeluarga,
   getDetailKepalaKeluarga,
   updateKepalaKeluarga,
   deleteKepalaKeluarga,
