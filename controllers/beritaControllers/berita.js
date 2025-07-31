@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 const { uploadBeritaFiles } = require('../../middlewares/scanUpload');
 const path = require('path');
 const fs = require('fs');
+const { get } = require('http');
 
 const createKategoriBerita = async (req, res) => {
   try {
@@ -49,6 +50,32 @@ const getAllKategoriBerita = async (req, res) => {
       message: "Semua kategori berita berhasil diambil",
       total: allKategori.length,
       data: allKategori,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+const getDetailKategoriBerita = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "ID kategori harus disediakan" });
+    }
+
+    const kategoriBerita = await prisma.kategoriBerita.findUnique({
+      where: { id },
+    });
+
+    if (!kategoriBerita) {
+      return res.status(404).json({ message: "Kategori berita tidak ditemukan" });
+    }
+
+    res.status(200).json({
+      message: "Detail kategori berita berhasil diambil",
+      data: kategoriBerita,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -134,8 +161,11 @@ const createBerita = async (req, res) => {
       return res.status(400).json({ message: "Kategori tidak ditemukan" });
     }
 
-    const files = req.files;
-    const sampul = files.sampul ? `/uploads/berita/${files.sampul[0].filename}` : null;
+    // Safely handle file upload
+    const files = req.files || {}; // Ensure files is an object
+    const sampul = files.sampul && Array.isArray(files.sampul) && files.sampul[0]
+      ? `/uploads/berita/${files.sampul[0].filename}`
+      : null;
 
     const newBerita = await prisma.berita.create({
       data: {
@@ -158,7 +188,7 @@ const createBerita = async (req, res) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ message: "Terjadi kesalahan server" });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
 
@@ -320,6 +350,7 @@ const getSampul = async (req, res) => {
 module.exports = {
   createKategoriBerita,
   getAllKategoriBerita,
+  getDetailKategoriBerita,
   updateKategoriBerita,
   deleteKategoriBerita,
   createBerita,

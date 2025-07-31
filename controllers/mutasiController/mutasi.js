@@ -52,10 +52,13 @@ const getResidents = async (req, res) => {
 
 const createLahirMasuk = async (req, res) => {
   try {
-    const { nama, nik, tanggal_lahir_masuk, alamat_sebelumnya, kkId } = req.body;
+    const { nama, nik, tanggal_lahir_masuk, alamat_sebelumnya, kkId } =
+      req.body;
 
     if (!nama || !nik || !tanggal_lahir_masuk) {
-      return res.status(400).json({ message: "Nama, NIK, dan tanggal lahir/masuk harus diisi" });
+      return res
+        .status(400)
+        .json({ message: "Nama, NIK, dan tanggal lahir/masuk harus diisi" });
     }
 
     const existingNIK = await prisma.lahirMasuk.findUnique({
@@ -98,10 +101,19 @@ const getAllLahirMasuk = async (req, res) => {
   try {
     const data = await prisma.lahirMasuk.findMany({
       include: {
-        kk: true, // Jika ingin menampilkan data KK yang terhubung (opsional)
+        kk: {
+          include: {
+            kepalaKeluarga: {
+              select: {
+                id: true,
+                nama: true, // Only include the id and nama fields
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc', // Urutkan dari yang terbaru (opsional)
+        createdAt: "desc", // Sort by newest first (optional)
       },
     });
 
@@ -115,7 +127,6 @@ const getAllLahirMasuk = async (req, res) => {
   }
 };
 
-
 const getLahirMasuk = async (req, res) => {
   try {
     const { id } = req.params;
@@ -126,7 +137,9 @@ const getLahirMasuk = async (req, res) => {
     });
 
     if (!lahirMasuk) {
-      return res.status(404).json({ message: "Data lahir/masuk tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data lahir/masuk tidak ditemukan" });
     }
 
     res.status(200).json({
@@ -142,13 +155,16 @@ const getLahirMasuk = async (req, res) => {
 const updateLahirMasuk = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama, nik, tanggal_lahir_masuk, alamat_sebelumnya, kkId } = req.body;
+    const { nama, nik, tanggal_lahir_masuk, alamat_sebelumnya, kkId } =
+      req.body;
 
     const existingLahirMasuk = await prisma.lahirMasuk.findUnique({
       where: { id },
     });
     if (!existingLahirMasuk) {
-      return res.status(404).json({ message: "Data lahir/masuk tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data lahir/masuk tidak ditemukan" });
     }
 
     if (nik && nik !== existingLahirMasuk.nik) {
@@ -174,9 +190,19 @@ const updateLahirMasuk = async (req, res) => {
       data: {
         nama: nama || existingLahirMasuk.nama,
         nik: nik || existingLahirMasuk.nik,
-        tanggal_lahir_masuk: tanggal_lahir_masuk ? new Date(tanggal_lahir_masuk) : existingLahirMasuk.tanggal_lahir_masuk,
-        alamat_sebelumnya: alamat_sebelumnya !== undefined ? alamat_sebelumnya : existingLahirMasuk.alamat_sebelumnya,
-        kk: kkId !== undefined ? { connect: { id: kkId } } : (existingLahirMasuk.kkId ? undefined : { disconnect: true }),
+        tanggal_lahir_masuk: tanggal_lahir_masuk
+          ? new Date(tanggal_lahir_masuk)
+          : existingLahirMasuk.tanggal_lahir_masuk,
+        alamat_sebelumnya:
+          alamat_sebelumnya !== undefined
+            ? alamat_sebelumnya
+            : existingLahirMasuk.alamat_sebelumnya,
+        kk:
+          kkId !== undefined
+            ? { connect: { id: kkId } }
+            : existingLahirMasuk.kkId
+            ? undefined
+            : { disconnect: true },
       },
     });
 
@@ -198,7 +224,9 @@ const deleteLahirMasuk = async (req, res) => {
       where: { id },
     });
     if (!lahirMasuk) {
-      return res.status(404).json({ message: "Data lahir/masuk tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data lahir/masuk tidak ditemukan" });
     }
 
     await prisma.lahirMasuk.delete({
@@ -217,7 +245,12 @@ const createMeninggal = async (req, res) => {
     const { nama, nik, tanggal_meninggal, alamat_meninggal, kkId } = req.body;
 
     if (!nama || !nik || !tanggal_meninggal || !alamat_meninggal) {
-      return res.status(400).json({ message: "Nama, NIK, tanggal meninggal, dan alamat meninggal harus diisi" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Nama, NIK, tanggal meninggal, dan alamat meninggal harus diisi",
+        });
     }
 
     const existingNIK = await prisma.meninggal.findUnique({
@@ -260,10 +293,19 @@ const getAllMeninggal = async (req, res) => {
   try {
     const data = await prisma.meninggal.findMany({
       include: {
-        kk: true, // Menampilkan data KK jika ada relasinya
+        kk: {
+          include: {
+            kepalaKeluarga: {
+              select: {
+                id: true,
+                nama: true, // Only include the id and nama fields
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc', // Urutkan dari yang terbaru (jika field ini tersedia)
+        createdAt: "desc", // Sort by newest first
       },
     });
 
@@ -277,7 +319,6 @@ const getAllMeninggal = async (req, res) => {
   }
 };
 
-
 const getMeninggal = async (req, res) => {
   try {
     const { id } = req.params;
@@ -288,7 +329,9 @@ const getMeninggal = async (req, res) => {
     });
 
     if (!meninggal) {
-      return res.status(404).json({ message: "Data meninggal tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data meninggal tidak ditemukan" });
     }
 
     res.status(200).json({
@@ -310,7 +353,9 @@ const updateMeninggal = async (req, res) => {
       where: { id },
     });
     if (!existingMeninggal) {
-      return res.status(404).json({ message: "Data meninggal tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data meninggal tidak ditemukan" });
     }
 
     if (nik && nik !== existingMeninggal.nik) {
@@ -336,9 +381,17 @@ const updateMeninggal = async (req, res) => {
       data: {
         nama: nama || existingMeninggal.nama,
         nik: nik || existingMeninggal.nik,
-        tanggal_meninggal: tanggal_meninggal ? new Date(tanggal_meninggal) : existingMeninggal.tanggal_meninggal,
-        alamat_meninggal: alamat_meninggal || existingMeninggal.alamat_meninggal,
-        kk: kkId !== undefined ? { connect: { id: kkId } } : (existingMeninggal.kkId ? undefined : { disconnect: true }),
+        tanggal_meninggal: tanggal_meninggal
+          ? new Date(tanggal_meninggal)
+          : existingMeninggal.tanggal_meninggal,
+        alamat_meninggal:
+          alamat_meninggal || existingMeninggal.alamat_meninggal,
+        kk:
+          kkId !== undefined
+            ? { connect: { id: kkId } }
+            : existingMeninggal.kkId
+            ? undefined
+            : { disconnect: true },
       },
     });
 
@@ -360,7 +413,9 @@ const deleteMeninggal = async (req, res) => {
       where: { id },
     });
     if (!meninggal) {
-      return res.status(404).json({ message: "Data meninggal tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data meninggal tidak ditemukan" });
     }
 
     await prisma.meninggal.delete({
@@ -379,7 +434,11 @@ const createPindahKeluar = async (req, res) => {
     const { nama, nik, tanggal_pindah, alamat_tujuan, kkId } = req.body;
 
     if (!nama || !nik || !tanggal_pindah || !alamat_tujuan) {
-      return res.status(400).json({ message: "Nama, NIK, tanggal pindah, dan alamat tujuan harus diisi" });
+      return res
+        .status(400)
+        .json({
+          message: "Nama, NIK, tanggal pindah, dan alamat tujuan harus diisi",
+        });
     }
 
     const existingNIK = await prisma.pindahKeluar.findUnique({
@@ -422,10 +481,16 @@ const getAllPindahKeluar = async (req, res) => {
   try {
     const data = await prisma.pindahKeluar.findMany({
       include: {
-        kk: true, // Menampilkan relasi KK jika ada
-      },
-      orderBy: {
-        createdAt: 'desc', // Urut dari terbaru (jika ada field createdAt)
+        kk: {
+          include: {
+            kepalaKeluarga: {
+              select: {
+                id: true,
+                nama: true, // Only include the id and nama fields
+              },
+            },
+          },
+        },
       },
     });
 
@@ -439,7 +504,6 @@ const getAllPindahKeluar = async (req, res) => {
   }
 };
 
-
 const getPindahKeluar = async (req, res) => {
   try {
     const { id } = req.params;
@@ -450,7 +514,9 @@ const getPindahKeluar = async (req, res) => {
     });
 
     if (!pindahKeluar) {
-      return res.status(404).json({ message: "Data pindah/keluar tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data pindah/keluar tidak ditemukan" });
     }
 
     res.status(200).json({
@@ -472,7 +538,9 @@ const updatePindahKeluar = async (req, res) => {
       where: { id },
     });
     if (!existingPindahKeluar) {
-      return res.status(404).json({ message: "Data pindah/keluar tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data pindah/keluar tidak ditemukan" });
     }
 
     if (nik && nik !== existingPindahKeluar.nik) {
@@ -498,9 +566,16 @@ const updatePindahKeluar = async (req, res) => {
       data: {
         nama: nama || existingPindahKeluar.nama,
         nik: nik || existingPindahKeluar.nik,
-        tanggal_pindah: tanggal_pindah ? new Date(tanggal_pindah) : existingPindahKeluar.tanggal_pindah,
+        tanggal_pindah: tanggal_pindah
+          ? new Date(tanggal_pindah)
+          : existingPindahKeluar.tanggal_pindah,
         alamat_tujuan: alamat_tujuan || existingPindahKeluar.alamat_tujuan,
-        kk: kkId !== undefined ? { connect: { id: kkId } } : (existingPindahKeluar.kkId ? undefined : { disconnect: true }),
+        kk:
+          kkId !== undefined
+            ? { connect: { id: kkId } }
+            : existingPindahKeluar.kkId
+            ? undefined
+            : { disconnect: true },
       },
     });
 
@@ -522,7 +597,9 @@ const deletePindahKeluar = async (req, res) => {
       where: { id },
     });
     if (!pindahKeluar) {
-      return res.status(404).json({ message: "Data pindah/keluar tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data pindah/keluar tidak ditemukan" });
     }
 
     await prisma.pindahKeluar.delete({
