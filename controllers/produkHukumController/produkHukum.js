@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 const { uploadProdukHukumFiles } = require('../../middlewares/scanUpload');
 const path = require('path');
 const fs = require('fs');
+const { get } = require('http');
 
 const createKategoriProdukHukum = async (req, res) => {
   try {
@@ -26,6 +27,27 @@ const createKategoriProdukHukum = async (req, res) => {
     res.status(201).json({
       message: "Kategori produk hukum berhasil dibuat",
       kategoriProdukHukum,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+const getAllKategoriProdukHukum = async (req, res) => {
+  try {
+    const kategoriProdukHukum = await prisma.kategoriProdukHukum.findMany({
+      include: {
+        produkHukum: true, // jika ingin menampilkan juga produk hukum yang terkait
+      },
+      orderBy: {
+        createdAt: 'desc', // opsional: urutkan dari yang terbaru
+      },
+    });
+
+    res.status(200).json({
+      message: "Daftar semua kategori produk hukum berhasil diambil",
+      data: kategoriProdukHukum,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -293,8 +315,30 @@ const deleteProdukHukum = async (req, res) => {
   }
 };
 
+const getFileProdukHukum = async (req, res) => {
+  try {
+    const { type, filename } = req.params;
+
+    // Path absolut ke folder 'public/uploads'
+    const rootDir = path.resolve(__dirname, '../..'); // <- dari controllers/pendudukController
+    const filePath = path.join(rootDir, 'public', 'uploads', type, filename);
+
+    console.log("File Path:", filePath);
+
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath); // path absolut, ini wajib
+    } else {
+      res.status(404).json({ message: "File tidak ditemukan" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
 module.exports = {
   createKategoriProdukHukum,
+  getAllKategoriProdukHukum,
   getKategoriProdukHukum,
   updateKategoriProdukHukum,
   deleteKategoriProdukHukum,
@@ -303,5 +347,6 @@ module.exports = {
   getProdukHukum,
   updateProdukHukum,
   deleteProdukHukum,
+  getFileProdukHukum,
   uploadProdukHukumFiles,
 };
