@@ -190,11 +190,101 @@ const deleteKK = async (req, res) => {
   }
 };
 
+const getDashboardSummary = async (req, res) => {
+  try {
+    // Fetch counts for each model
+    const [
+      totalKK,
+      totalKepalaKeluarga,
+      totalAnggotaKeluarga,
+      totalLahirMasuk,
+      totalMeninggal,
+      totalPindahKeluar,
+      totalAPBDes,
+      totalBerita,
+      totalKategoriBerita,
+      totalUMKM,
+      totalProduk,
+      totalProdukHukum,
+      totalKategoriProdukHukum,
+      totalPotensiDesa,
+    ] = await Promise.all([
+      prisma.kK.count(),
+      prisma.kepalaKeluarga.count(),
+      prisma.anggotaKeluarga.count(),
+      prisma.lahirMasuk.count(),
+      prisma.meninggal.count(),
+      prisma.pindahKeluar.count(),
+      prisma.aPBDes.count(),
+      prisma.berita.count(),
+      prisma.kategoriBerita.count(),
+      prisma.uMKM.count(),
+      prisma.produk.count(),
+      prisma.produkHukum.count(),
+      prisma.kategoriProdukHukum.count(),
+      prisma.potensiDesa.count(),
+    ]);
+
+    // Fetch additional metrics, e.g., latest entries or aggregates
+    const latestBerita = await prisma.berita.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, judul: true, createdAt: true },
+    });
+
+    const totalAPBDesDana = await prisma.aPBDes.aggregate({
+      _sum: { jumlah_dana: true },
+    });
+
+    const response = {
+      message: 'Dashboard summary retrieved successfully',
+      data: {
+        penduduk: {
+          totalKK,
+          totalKepalaKeluarga,
+          totalAnggotaKeluarga,
+        },
+        mutasiPenduduk: {
+          totalLahirMasuk,
+          totalMeninggal,
+          totalPindahKeluar,
+        },
+        apbdes: {
+          totalRecords: totalAPBDes,
+          totalDana: totalAPBDesDana._sum.jumlah_dana || 0,
+        },
+        berita: {
+          totalBerita,
+          totalKategoriBerita,
+          latestBerita,
+        },
+        lapakDesa: {
+          totalUMKM,
+          totalProduk,
+        },
+        produkHukum: {
+          totalProdukHukum,
+          totalKategoriProdukHukum,
+        },
+        potensiDesa: {
+          totalPotensiDesa,
+        },
+      },
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error fetching dashboard summary:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
 module.exports = {
   createKK,
   getKKWithoutKepalaKeluarga,
   getAllKK,
   getKKById,
   updateKK,
-  deleteKK
+  deleteKK,
+  getDashboardSummary,
 };
