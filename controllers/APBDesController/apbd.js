@@ -44,7 +44,7 @@ const getAllAPBDes = async (req, res) => {
   try {
     // Optional query parameters for filtering
     const { tahun, jenis_apbd } = req.query;
-    
+
     // Build filter object
     const filter = {};
     if (tahun) filter.tahun = parseInt(tahun);
@@ -53,16 +53,14 @@ const getAllAPBDes = async (req, res) => {
     const allAPBDes = await prisma.aPBDes.findMany({
       where: filter,
       orderBy: {
-        tahun: 'desc', // Default sorting by tahun descending
+        tahun: 'desc',
       },
     });
 
-    if (!allAPBDes || allAPBDes.length === 0) {
-      return res.status(404).json({ message: "Tidak ada data APBDes yang ditemukan" });
-    }
-
     res.status(200).json({
-      message: "Semua data APBDes berhasil diambil",
+      message: allAPBDes.length > 0 
+        ? "Semua data APBDes berhasil diambil" 
+        : "Data APBDes kosong",
       total: allAPBDes.length,
       data: allAPBDes,
     });
@@ -71,6 +69,7 @@ const getAllAPBDes = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
+
 
 const getAPBDes = async (req, res) => {
   try {
