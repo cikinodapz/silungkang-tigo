@@ -389,6 +389,28 @@ const createAnggotaKeluarga = async (req, res) => {
   }
 };
 
+const getAllAnggotaKeluarga = async (req, res) => {
+  try {
+    const anggotaKeluargaList = await prisma.anggotaKeluarga.findMany({
+      include: {
+        kk: true, // jika ingin menyertakan data KK terkait
+      },
+      orderBy: {
+        nama: 'asc', // bisa diubah ke 'createdAt' atau lainnya jika ada field tersebut
+      },
+    });
+
+    res.status(200).json({
+      message: "Berhasil mengambil semua data anggota keluarga",
+      data: anggotaKeluargaList,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+
 // Detail Anggota Keluarga
 const getAnggotaKeluarga = async (req, res) => {
   try {
@@ -415,7 +437,6 @@ const getAnggotaKeluarga = async (req, res) => {
   }
 };
 
-// Edit Anggota Keluarga
 const updateAnggotaKeluarga = async (req, res) => {
   try {
     const { id } = req.params;
@@ -467,18 +488,18 @@ const updateAnggotaKeluarga = async (req, res) => {
       }
     }
 
-    // Get uploaded file paths
-    const files = req.files;
-    const scan_ktp = files.scan_ktp
+    // Safely handle file uploads
+    const files = req.files || {}; // Fallback to empty object if req.files is undefined
+    const scan_ktp = files.scan_ktp && files.scan_ktp[0]
       ? `/uploads/ktp/${files.scan_ktp[0].filename}`
       : existingAnggota.scan_ktp;
-    const scan_kk = files.scan_kk
+    const scan_kk = files.scan_kk && files.scan_kk[0]
       ? `/uploads/kk/${files.scan_kk[0].filename}`
       : existingAnggota.scan_kk;
-    const scan_akta_lahir = files.scan_akta_lahir
+    const scan_akta_lahir = files.scan_akta_lahir && files.scan_akta_lahir[0]
       ? `/uploads/akta/${files.scan_akta_lahir[0].filename}`
       : existingAnggota.scan_akta_lahir;
-    const scan_buku_nikah = files.scan_buku_nikah
+    const scan_buku_nikah = files.scan_buku_nikah && files.scan_buku_nikah[0]
       ? `/uploads/nikah/${files.scan_buku_nikah[0].filename}`
       : existingAnggota.scan_buku_nikah;
 
@@ -583,6 +604,7 @@ module.exports = {
   updateKepalaKeluarga,
   deleteKepalaKeluarga,
   createAnggotaKeluarga,
+  getAllAnggotaKeluarga,
   getAnggotaKeluarga,
   updateAnggotaKeluarga,
   deleteAnggotaKeluarga,
