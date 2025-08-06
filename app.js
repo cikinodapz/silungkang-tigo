@@ -17,6 +17,7 @@ var productHukumRouter = require('./routes/produkHukumRoutes/produkHukumRoutes')
 var lapakDesaRouter = require('./routes/lapakDesaRoutes/lapakDesaRoutes'); // Import lapak desa routes
 var mutasiRouter = require('./routes/mutasiRoutes/mutasiRoutes'); // Import mutasi routes
 var potensiDesaRouter = require('./routes/potensiDesaRoutes/potensiDesaRoutes'); // Import potensi desa routes
+var publicRoutes = require('./routes/publicRoutes/publicRoutes'); // Import public routes
 
 var app = express();
 
@@ -48,6 +49,7 @@ app.use('/produk-hukum', productHukumRouter); // Use produk hukum routes
 app.use('/lapak-desa', lapakDesaRouter); // Use lapak desa routes
 app.use('/mutasi', mutasiRouter); // Use mutasi routes
 app.use('/potensi-desa', potensiDesaRouter); // Use potensi desa routes
+app.use('/public', publicRoutes); // Use public routes
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
