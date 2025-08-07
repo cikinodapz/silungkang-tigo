@@ -74,7 +74,7 @@ const uploadKepalaKeluargaFiles = upload.fields([
 ]);
 
 // Middleware for Berita uploads
-const uploadBeritaFiles = upload.fields([{ name: "sampul", maxCount: 1 }]);
+const uploadBeritaFiles = upload.fields([{ name: "sampul", maxCount: 5 }]);
 
 // Middleware for ProdukHukum uploads
 const uploadProdukHukumFiles = upload.fields([

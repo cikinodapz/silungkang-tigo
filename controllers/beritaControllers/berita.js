@@ -161,17 +161,17 @@ const createBerita = async (req, res) => {
       return res.status(400).json({ message: "Kategori tidak ditemukan" });
     }
 
-    // Safely handle file upload
-    const files = req.files || {}; // Ensure files is an object
-    const sampul = files.sampul && Array.isArray(files.sampul) && files.sampul[0]
-      ? `/uploads/berita/${files.sampul[0].filename}`
-      : null;
+    // Handle multiple file uploads
+    const files = req.files || {};
+    const sampul = files.sampul && Array.isArray(files.sampul)
+      ? files.sampul.map(file => `/uploads/berita/${file.filename}`)
+      : [];
 
     const newBerita = await prisma.berita.create({
       data: {
         judul,
         berita,
-        sampul,
+        sampul, // Store array of image paths (empty array if no files)
         kategori: { connect: { id: kategoriId } },
       },
     });
@@ -246,13 +246,22 @@ const updateBerita = async (req, res) => {
     const { id } = req.params;
     const { judul, berita, kategoriId } = req.body;
 
+    // Validate required fields
+    if (!judul && !berita && !kategoriId && !req.files?.sampul) {
+      return res.status(400).json({ message: "Minimal satu field harus diupdate" });
+    }
+
+    // Check if news exists
     const existingBerita = await prisma.berita.findUnique({
       where: { id },
+      include: { kategori: true } // Include kategori relation
     });
+    
     if (!existingBerita) {
       return res.status(404).json({ message: "Berita tidak ditemukan" });
     }
 
+    // Validate kategori if provided
     if (kategoriId && kategoriId !== existingBerita.kategoriId) {
       const existingKategori = await prisma.kategoriBerita.findUnique({
         where: { id: kategoriId },
@@ -262,9 +271,17 @@ const updateBerita = async (req, res) => {
       }
     }
 
-    const files = req.files;
-    const sampul = files.sampul ? `/uploads/berita/${files.sampul[0].filename}` : existingBerita.sampul;
+    // Handle file uploads (support multiple files like create function)
+    const files = req.files || {};
+    let sampul = existingBerita.sampul;
+    
+    if (files.sampul) {
+      sampul = Array.isArray(files.sampul)
+        ? files.sampul.map(file => `/uploads/berita/${file.filename}`)
+        : [`/uploads/berita/${files.sampul[0].filename}`];
+    }
 
+    // Update news data
     const updatedBerita = await prisma.berita.update({
       where: { id },
       data: {
@@ -273,18 +290,21 @@ const updateBerita = async (req, res) => {
         sampul,
         kategori: kategoriId ? { connect: { id: kategoriId } } : undefined,
       },
+      include: { kategori: true } // Include updated kategori relation in response
     });
 
-    // Update jumlah_berita if kategoriId changes
+    // Update jumlah_berita counters if kategori changed
     if (kategoriId && kategoriId !== existingBerita.kategoriId) {
-      await prisma.kategoriBerita.update({
-        where: { id: existingBerita.kategoriId },
-        data: { jumlah_berita: { decrement: 1 } },
-      });
-      await prisma.kategoriBerita.update({
-        where: { id: kategoriId },
-        data: { jumlah_berita: { increment: 1 } },
-      });
+      await prisma.$transaction([
+        prisma.kategoriBerita.update({
+          where: { id: existingBerita.kategoriId },
+          data: { jumlah_berita: { decrement: 1 } },
+        }),
+        prisma.kategoriBerita.update({
+          where: { id: kategoriId },
+          data: { jumlah_berita: { increment: 1 } },
+        }),
+      ]);
     }
 
     res.status(200).json({
@@ -293,7 +313,10 @@ const updateBerita = async (req, res) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ message: "Terjadi kesalahan server" });
+    res.status(500).json({ 
+      message: "Terjadi kesalahan server",
+      error: error.message // Include error message for debugging
+    });
   }
 };
 

@@ -116,7 +116,7 @@ model KategoriBerita {
 
 model Berita {
   id            String   @id @default(uuid()) @db.Uuid
-  sampul        String?  @db.Text // Path to cover image
+  sampul        String[]  // Changed to String array to store multiple image paths
   judul         String
   berita        String   @db.Text
   kategori      KategoriBerita @relation(fields: [kategoriId], references: [id])
