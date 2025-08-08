@@ -279,6 +279,59 @@ const getDashboardSummary = async (req, res) => {
   }
 };
 
+// Track visitor setiap request
+const trackVisitor = async (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    // Cek apakah visitor sudah ada
+    let visitor = await prisma.visitor.findFirst({
+      where: { ip_address: ip, user_agent: userAgent }
+    });
+
+    if (visitor) {
+      // Kalau sudah ada → update jumlah kunjungan
+      visitor = await prisma.visitor.update({
+        where: { id: visitor.id },
+        data: { visits: visitor.visits + 1 }
+      });
+    } else {
+      // Kalau belum ada → buat baru
+      visitor = await prisma.visitor.create({
+        data: { ip_address: ip, user_agent: userAgent }
+      });
+    }
+
+    res.status(200).json({
+      message: "Visitor tracked successfully",
+      data: visitor
+    });
+  } catch (error) {
+    console.error("Error tracking visitor:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Ambil statistik jumlah pengunjung
+const getVisitorStats = async (req, res) => {
+  try {
+    const totalVisitors = await prisma.visitor.count(); // jumlah pengunjung unik
+    const totalVisits = await prisma.visitor.aggregate({
+      _sum: { visits: true }
+    });
+
+    res.status(200).json({
+      message: "Visitor stats retrieved",
+      totalVisitors,
+      totalVisits: totalVisits._sum.visits || 0
+    });
+  } catch (error) {
+    console.error("Error getting stats:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createKK,
   getKKWithoutKepalaKeluarga,
@@ -287,4 +340,6 @@ module.exports = {
   updateKK,
   deleteKK,
   getDashboardSummary,
+  trackVisitor,
+  getVisitorStats,
 };
