@@ -4,6 +4,7 @@ const { getAllBerita, getAllKategoriBerita, getSampul, getBerita } = require('..
 const { getAllAPBDes } = require('../../controllers/APBDesController/apbd');
 const { getAllPotensiDesa, getFotoPotensiDesa, getPotensiDesa } = require('../../controllers/potensiDesaController/potensiDesa');
 const { getAllProdukHukum, getFileProdukHukum } = require('../../controllers/produkHukumController/produkHukum');
+const { getAllUMKM, getFotoUMKM, getAllProduk, getFotoProduk, getUMKM } = require('../../controllers/lapakDesaController/lapakDesa');
 const router = express.Router();
 
 // Public Routes
@@ -25,7 +26,10 @@ router.get("/foto-potensi-desa/:type/:filename", getFotoPotensiDesa); // Endpoin
 router.get('/getAllProdukHukum', getAllProdukHukum); // Endpoint to get all product laws
 router.get('/getFileProdukHukum/:type/:filename', getFileProdukHukum); // Endpoint to view product law file
 
-
-
+//Lapak Desa Routes
+router.get("/umkm", getAllUMKM);
+router.get("/umkm/:id", getUMKM);
+router.get("/foto-umkm/:type/:filename", getFotoUMKM); // Endpoint to view UMKM photo
+router.get("/foto-produk/:type/:filename", getFotoProduk); // Endpoint to view product photo
 
 module.exports = router;
