@@ -13,9 +13,9 @@ const createPotensiDesa = async (req, res) => {
       return res.status(400).json({ message: "Nama dan kategori harus diisi" });
     }
 
-    const validCategories = ["Kesenian dan Kebudayaan", "Pariwisata", "Sarana Prasarana"];
+    const validCategories = ["Kesenian dan Kerajinan", "Kuliner", "Sarana Prasarana"];
     if (!validCategories.includes(kategori)) {
-      return res.status(400).json({ message: "Kategori harus salah satu dari: Kesenian dan Kebudayaan, Pariwisata, Sarana Prasarana" });
+      return res.status(400).json({ message: "Kategori harus salah satu dari: Kesenian dan Kerajinan, Kuliner, Sarana Prasarana" });
     }
 
     const files = req.files;
@@ -94,9 +94,9 @@ const updatePotensiDesa = async (req, res) => {
     }
 
     if (kategori) {
-      const validCategories = ["Kesenian dan Kebudayaan", "Pariwisata", "Sarana Prasarana"];
+      const validCategories = ["Kesenian dan Kerajinan", "Kuliner", "Sarana Prasarana"];
       if (!validCategories.includes(kategori)) {
-        return res.status(400).json({ message: "Kategori harus salah satu dari: Kesenian dan Kebudayaan, Pariwisata, Sarana Prasarana" });
+        return res.status(400).json({ message: "Kategori harus salah satu dari: Kesenian dan Kerajinan, Kuliner, Sarana Prasarana" });
       }
     }
 
