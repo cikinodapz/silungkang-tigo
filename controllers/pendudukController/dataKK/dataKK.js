@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const ExcelJS = require('exceljs');
 
 const createKK = async (req, res) => {
   try {
@@ -190,6 +191,130 @@ const deleteKK = async (req, res) => {
   }
 };
 
+const exportPopulationData = async (req, res) => {
+  try {
+    // Fetch all KK data with related KepalaKeluarga and AnggotaKeluarga
+    const kkData = await prisma.kK.findMany({
+      include: {
+        kepalaKeluarga: true,
+        AnggotaKeluarga: true,
+      },
+    });
+
+    // Create a new Excel workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Data Penduduk');
+
+    // Define columns for the Excel file
+    worksheet.columns = [
+      { header: 'No. KK', key: 'no_kk', width: 15 },
+      { header: 'Provinsi', key: 'provinsi', width: 20 },
+      { header: 'Kabupaten', key: 'kabupaten', width: 20 },
+      { header: 'Kecamatan', key: 'kecamatan', width: 20 },
+      { header: 'Kelurahan', key: 'kelurahan', width: 20 },
+      { header: 'Dusun', key: 'dusun', width: 15 },
+      { header: 'RW', key: 'rw', width: 10 },
+      { header: 'RT', key: 'rt', width: 10 },
+      { header: 'Kode Pos', key: 'kode_pos', width: 10 },
+      { header: 'Tipe', key: 'tipe', width: 15 },
+      { header: 'NIK', key: 'nik', width: 20 },
+      { header: 'Nama', key: 'nama', width: 25 },
+      { header: 'Jenis Kelamin', key: 'jenis_kelamin', width: 15 },
+      { header: 'Tempat Lahir', key: 'tempat_lahir', width: 20 },
+      { header: 'Tanggal Lahir', key: 'tanggal_lahir', width: 15 },
+      { header: 'Golongan Darah', key: 'golongan_darah', width: 15 },
+      { header: 'Agama', key: 'agama', width: 15 },
+      { header: 'Status Perkawinan', key: 'status_perkawinan', width: 20 },
+      { header: 'Pendidikan Akhir', key: 'pendidikan_akhir', width: 20 },
+      { header: 'Pekerjaan', key: 'pekerjaan', width: 20 },
+      { header: 'Nama Ayah', key: 'nama_ayah', width: 25 },
+      { header: 'Nama Ibu', key: 'nama_ibu', width: 25 },
+      { header: 'Status Hubungan', key: 'status_hubungan', width: 20 },
+    ];
+
+    // Add data to the worksheet
+    kkData.forEach((kk) => {
+      // Add Kepala Keluarga data
+      if (kk.kepalaKeluarga) {
+        worksheet.addRow({
+          no_kk: kk.no_kk,
+          provinsi: kk.provinsi,
+          kabupaten: kk.kabupaten,
+          kecamatan: kk.kecamatan,
+          kelurahan: kk.kelurahan,
+          dusun: kk.dusun,
+          rw: kk.rw,
+          rt: kk.rt,
+          kode_pos: kk.kode_pos,
+          tipe: 'Kepala Keluarga',
+          nik: kk.kepalaKeluarga.nik,
+          nama: kk.kepalaKeluarga.nama,
+          jenis_kelamin: kk.kepalaKeluarga.jenis_kelamin,
+          tempat_lahir: kk.kepalaKeluarga.tempat_lahir,
+          tanggal_lahir: kk.kepalaKeluarga.tanggal_lahir.toISOString().split('T')[0],
+          golongan_darah: kk.kepalaKeluarga.golongan_darah || '-',
+          agama: kk.kepalaKeluarga.agama,
+          status_perkawinan: kk.kepalaKeluarga.status_perkawinan,
+          pendidikan_akhir: kk.kepalaKeluarga.pendidikan_akhir,
+          pekerjaan: kk.kepalaKeluarga.pekerjaan,
+          nama_ayah: kk.kepalaKeluarga.nama_ayah,
+          nama_ibu: kk.kepalaKeluarga.nama_ibu,
+          status_hubungan: 'Kepala Keluarga',
+        });
+      }
+
+      // Add Anggota Keluarga data
+      kk.AnggotaKeluarga.forEach((anggota) => {
+        worksheet.addRow({
+          no_kk: kk.no_kk,
+          provinsi: kk.provinsi,
+          kabupaten: kk.kabupaten,
+          kecamatan: kk.kecamatan,
+          kelurahan: kk.kelurahan,
+          dusun: kk.dusun,
+          rw: kk.rw,
+          rt: kk.rt,
+          kode_pos: kk.kode_pos,
+          tipe: 'Anggota Keluarga',
+          nik: anggota.nik,
+          nama: anggota.nama,
+          jenis_kelamin: anggota.jenis_kelamin,
+          tempat_lahir: anggota.tempat_lahir,
+          tanggal_lahir: anggota.tanggal_lahir.toISOString().split('T')[0],
+          golongan_darah: anggota.golongan_darah || '-',
+          agama: anggota.agama,
+          status_perkawinan: anggota.status_perkawinan,
+          pendidikan_akhir: anggota.pendidikan_akhir,
+          pekerjaan: anggota.pekerjaan,
+          nama_ayah: anggota.nama_ayah,
+          nama_ibu: anggota.nama_ibu,
+          status_hubungan: anggota.status_hubungan,
+        });
+      });
+    });
+
+    // Style the header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Set response headers for Excel file download
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename="Data_Penduduk.xlsx"');
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export population data error:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
 const getDashboardSummary = async (req, res) => {
   try {
     // Fetch counts for each model
@@ -339,6 +464,7 @@ module.exports = {
   getKKById,
   updateKK,
   deleteKK,
+  exportPopulationData,
   getDashboardSummary,
   trackVisitor,
   getVisitorStats,

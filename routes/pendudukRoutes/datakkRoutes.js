@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { createKK, getAllKK, getKKById, updateKK, deleteKK,getDashboardSummary, getKKWithoutKepalaKeluarga, trackVisitor, getVisitorStats } = require('../../controllers/pendudukController/dataKK/dataKK');
+const { createKK, getAllKK, getKKById, updateKK, deleteKK,exportPopulationData,getDashboardSummary, getKKWithoutKepalaKeluarga, trackVisitor, getVisitorStats } = require('../../controllers/pendudukController/dataKK/dataKK');
 const { route } = require('..');
 
 router.post('/createKK', authMiddleware, createKK);
@@ -10,6 +10,7 @@ router.get('/getAllKK', authMiddleware, getAllKK);
 router.get('/getKKbyId/:id', authMiddleware, getKKById);
 router.put('/editKK/:id', authMiddleware, updateKK);
 router.delete('/deleteKK/:id', authMiddleware, deleteKK);
+router.get('/exportPopulationData', authMiddleware, exportPopulationData); // Endpoint to export population data
 
 //dashbboard
 router.get('/getDashboardSummary', authMiddleware, getDashboardSummary); // Endpoint to get dashboard summary
